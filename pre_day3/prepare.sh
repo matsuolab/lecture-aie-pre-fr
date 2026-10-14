@@ -1,66 +1,66 @@
 #!/bin/sh
 
-# このファイルは、Day3（Docker演習パート）の準備用プログラムです。
-# 講義の前に一度実行しておくことで、講義中に待たずに済むようにします。
-# 保存場所は Repository の中の pre_day3/prepare.sh、実行は
+# Ce fichier est le programme de préparation de pre-Day3 (travaux pratiques Docker).
+# Exécutez-le une fois avant le cours pour éviter d'attendre pendant la séance.
+# Il se trouve dans le dépôt, à l'emplacement pre_day3/prepare.sh ; pour le lancer, utilisez
 #   chmod +x pre_day3/prepare.sh
 #   ./pre_day3/prepare.sh
-# の2つだけです（Day2で覚えた操作と同じです）。
+# uniquement les deux commandes ci-dessus (les mêmes manipulations que celles apprises à pre-Day2).
 
-# 途中でエラーが起きたら、その時点で止めます（-e）。
-# 中身が決まっていない値を使おうとしたときも止めます（-u）。
+# Arrêter immédiatement le script si une erreur survient (-e).
+# Arrêter aussi le script si une valeur non définie est utilisée (-u).
 set -eu
 
-# [1] 取得するimageとモデルの版を、変数にまとめておきます。
-#     ここは受講者が書き換える場所ではありません。
+# [1] Regrouper dans des variables les versions de l'image Docker et du modèle à télécharger.
+#     Les participants ne doivent pas modifier cette section.
 IMAGE='ghcr.io/ggml-org/llama.cpp:server-v0.5.0'
 MODEL_DIR='/workspaces/models'
 MODEL_FILE='gemma-4-E2B-it-UD-Q4_K_XL.gguf'
 MODEL_URL='https://huggingface.co/unsloth/gemma-4-E2B-it-GGUF/resolve/0314792d7f1f7e229411f620751375812bb9faf2/gemma-4-E2B-it-UD-Q4_K_XL.gguf'
 MODEL_SHA256='b52f438017efaec5debf1c0d8be690571e212a07c312f1102bbce927258cfc32'
 LLM_CHAT_DIR='/workspaces/llm-chat'
-# 空き容量の目安：取得量は約3.5GB。余裕を見て4GB（4×1024×1024 KB）を基準にします。
+# Espace libre requis : environ 3.5GB à télécharger. Prévoir une marge et retenir 4GB (4 × 1024 × 1024 KB).
 REQUIRED_FREE_KB=4194304
 
-# [2] Dockerのserverにつながるか確認します。
-#     つながらなければ、ここで止めて次の行動を伝えます。
+# [2] Vérifier la connexion au serveur Docker.
+#     Si la connexion échoue, arrêter ici et indiquer la marche à suivre.
 check_docker() {
   if ! docker version >/dev/null 2>&1; then
-    printf '%s\n' 'エラー：Dockerが使えません。' >&2
-    printf '%s\n' 'このCodespaceでDockerの起動が終わっていないか、Dockerが使えない環境です。' >&2
-    printf '%s\n' '数十秒待ってからもう一度 ./pre_day3/prepare.sh を実行してください。' >&2
+    printf '%s\n' 'Erreur : Docker est indisponible.' >&2
+    printf '%s\n' 'Dans ce Codespace, Docker ne semble pas avoir terminé son démarrage, ou cet environnement ne permet pas de faire fonctionner Docker.' >&2
+    printf '%s\n' 'Patientez quelques dizaines de secondes, puis relancez ./pre_day3/prepare.sh.' >&2
     exit 1
   fi
 }
 
-# [3] /workspaces の空き容量を確認します。
-#     足りなければ、ここで止めて次の行動を伝えます。
+# [3] Vérifier l'espace libre dans /workspaces.
+#     Si cet espace est insuffisant, arrêter ici et indiquer la marche à suivre.
 check_disk_space() {
   free_kb=$(df -Pk "$MODEL_DIR_PARENT" | awk 'NR==2 {print $4}')
   if [ "$free_kb" -lt "$REQUIRED_FREE_KB" ]; then
-    printf '%s\n' 'エラー：/workspaces の空き容量が足りません。' >&2
-    printf '%s\n' '約4GB以上の空きが必要です（image約308MB、モデル約3.2GB）。' >&2
-    printf '%s\n' '使っていないCodespaceを削除するか、不要なファイルを消してから、' >&2
-    printf '%s\n' 'もう一度 ./pre_day3/prepare.sh を実行してください。' >&2
+    printf '%s\n' 'Erreur : espace libre insuffisant dans /workspaces.' >&2
+    printf '%s\n' 'Il faut environ 4GB ou plus de libre (image Docker : environ 308MB, modèle : environ 3.2GB).' >&2
+    printf '%s\n' 'Supprimez les Codespaces inutilisés ou les fichiers superflus, puis' >&2
+    printf '%s\n' 'relancez ./pre_day3/prepare.sh.' >&2
     exit 1
   fi
 }
 
-# [4] llama.cppのimageを取得します。すでに取得済みなら取り直しません。
+# [4] Télécharger l'image Docker de llama.cpp. Ne pas la télécharger de nouveau si elle est déjà présente.
 pull_image() {
   if docker image inspect "$IMAGE" >/dev/null 2>&1; then
-    printf '%s\n' "imageは取得済みです（$IMAGE）。取得をとばします。"
+    printf '%s\n' "Image Docker déjà téléchargée ($IMAGE). Téléchargement ignoré."
     return 0
   fi
-  printf '%s\n' "imageを取得します（$IMAGE）。数分かかることがあります。"
+  printf '%s\n' "Téléchargement de l'image Docker ($IMAGE). Cela peut prendre quelques minutes."
   if ! docker pull "$IMAGE"; then
-    printf '%s\n' 'エラー：imageの取得に失敗しました。' >&2
-    printf '%s\n' 'ネットワークの状態を確認し、もう一度 ./pre_day3/prepare.sh を実行してください。' >&2
+    printf '%s\n' 'Erreur : échec du téléchargement de l’image Docker.' >&2
+    printf '%s\n' 'Vérifiez la connexion réseau, puis relancez ./pre_day3/prepare.sh.' >&2
     exit 1
   fi
 }
 
-# [5] ファイルのSHA-256が期待どおりか確認します。一致すれば0、しなければ1を返します。
+# [5] Vérifier que le SHA-256 du fichier correspond à la valeur attendue. Renvoyer 0 en cas de correspondance, sinon 1.
 matches_sha256() {
   target_file="$1"
   [ -f "$target_file" ] || return 1
@@ -68,72 +68,72 @@ matches_sha256() {
   [ "$actual" = "$MODEL_SHA256" ]
 }
 
-# [6] モデルファイルを取得します。
-#     一致済みなら取り直さず、途中で止まったファイルは消して取り直します。
+# [6] Télécharger le fichier du modèle.
+#     Si son contenu a déjà été vérifié, ne pas le télécharger de nouveau ; supprimer et retélécharger tout fichier dont le téléchargement a été interrompu.
 fetch_model() {
   mkdir -p "$MODEL_DIR"
   model_path="$MODEL_DIR/$MODEL_FILE"
   tmp_path="$model_path.download"
 
   if matches_sha256 "$model_path"; then
-    printf '%s\n' "モデルは取得済みで内容も一致しています（$model_path）。取得をとばします。"
+    printf '%s\n' "Modèle déjà téléchargé et contenu vérifié ($model_path). Téléchargement ignoré."
     return 0
   fi
 
-  # 前回途中で止まったファイルが残っていたら消します。
+  # Supprimer tout fichier laissé par un téléchargement précédemment interrompu.
   rm -f "$tmp_path"
 
-  printf '%s\n' 'モデルを取得します。1分程度かかることがあります。'
+  printf '%s\n' 'Téléchargement du modèle. Cela peut prendre environ une minute.'
   if ! curl --fail --silent --show-error --location --output "$tmp_path" "$MODEL_URL"; then
     rm -f "$tmp_path"
-    printf '%s\n' 'エラー：モデルの取得に失敗しました。' >&2
-    printf '%s\n' 'ネットワークの状態を確認し、もう一度 ./pre_day3/prepare.sh を実行してください。' >&2
+    printf '%s\n' 'Erreur : échec du téléchargement du modèle.' >&2
+    printf '%s\n' 'Vérifiez la connexion réseau, puis relancez ./pre_day3/prepare.sh.' >&2
     exit 1
   fi
 
   if ! matches_sha256 "$tmp_path"; then
     rm -f "$tmp_path"
-    printf '%s\n' 'エラー：取得したモデルの内容が正しくありません（SHA-256が一致しません）。' >&2
-    printf '%s\n' '途中で通信が切れた可能性があります。もう一度 ./pre_day3/prepare.sh を実行してください。' >&2
+    printf '%s\n' 'Erreur : le contenu du modèle téléchargé est incorrect (le SHA-256 ne correspond pas).' >&2
+    printf '%s\n' 'La connexion a peut-être été interrompue. Relancez ./pre_day3/prepare.sh.' >&2
     exit 1
   fi
 
   mv "$tmp_path" "$model_path"
-  printf '%s\n' 'モデルの取得と内容の確認が終わりました。'
+  printf '%s\n' 'Téléchargement du modèle et vérification de son contenu terminés.'
 }
 
-# [7] AI用のDockerfileを /workspaces/llm-chat/Dockerfile に配置します。
-#     中身はこのプログラムの中に持っています（配布ページのDockerfileと同じ内容です）。
+# [7] Placer le Dockerfile destiné à l'IA dans /workspaces/llm-chat/Dockerfile.
+#     Son contenu est inclus dans ce programme (identique au Dockerfile de la page de distribution).
 place_llm_chat_dockerfile() {
   mkdir -p "$LLM_CHAT_DIR"
   cat > "$LLM_CHAT_DIR/Dockerfile" <<'DOCKERFILE'
-# [1] 土台（base image）：llama.cpp のサーバーが入ったimage。
-#     版（server-v0.5.0）を固定する。latestを使うと、作り直すたびに中身が変わりうる。
+# [1] Base (base image) : une image contenant le serveur de llama.cpp.
+#     Fixer la version (server-v0.5.0). Avec latest, le contenu peut changer à chaque reconstruction.
 FROM ghcr.io/ggml-org/llama.cpp:server-v0.5.0
 
-# [2] 設定（environment variable）：読み込むモデルの場所。
-#     モデルのファイルはimageに入れず、docker run の -v（bind mount）で外から /models に渡す。
+# [2] Configuration (environment variable) : emplacement du modèle à charger.
+#     Le fichier du modèle n'est pas inclus dans l'image ; le fournir depuis l'extérieur dans /models avec -v (bind mount) de docker run.
 ENV LLAMA_ARG_MODEL=/models/gemma-4-E2B-it-UD-Q4_K_XL.gguf
 
-# [3] 設定：受付の窓口（port）。containerの外からつなげるよう 0.0.0.0 の 8080 番で待つ。
+# [3] Configuration : point d'accès (port). Écouter sur 0.0.0.0, port 8080, pour permettre les connexions depuis l'extérieur du conteneur.
 ENV LLAMA_ARG_HOST=0.0.0.0
 ENV LLAMA_ARG_PORT=8080
 
-# [4] 設定：考える動作（reasoning）を切る。会話を覚えておける長さ（ctx-size）。
-#     一度に答える長さの上限（n-predict）。
+# [4] Configuration : désactiver le raisonnement (reasoning). Définir la longueur de conversation mémorisable (ctx-size).
+#     Définir la longueur maximale d'une réponse (n-predict).
 ENV LLAMA_ARG_REASONING=off
 ENV LLAMA_ARG_CTX_SIZE=4096
 ENV LLAMA_ARG_N_PREDICT=256
 
-# [5] 設定：AIへの最初の指示（system prompt）。ここを書き換えて docker build をやり直すと、
-#     AIの答え方が変わる。書き換えるのはこの行の "" の中の文だけでよい。
-#     引用符の入れ子（外側は'、内側は"）を崩さないこと。
-ENV LLAMA_ARG_UI_CONFIG='{"systemMessage":"あなたは親切なアシスタントです。短く答えてください。"}'
+# [5] Configuration : première instruction donnée à l'IA (system prompt). Modifier ce texte, puis relancer docker build
+#     change la manière de répondre de l'IA. Il suffit de modifier le texte entre les "" de cette ligne.
+#     Conserver les guillemets imbriqués (' à l'extérieur, " à l'intérieur).
+ENV LLAMA_ARG_UI_CONFIG='{"systemMessage":"Vous êtes un assistant serviable. Répondez brièvement."}'
 DOCKERFILE
-  printf '%s\n' "$LLM_CHAT_DIR/Dockerfile を配置しました。"
+  printf '%s\n' "Le fichier $LLM_CHAT_DIR/Dockerfile a été mis en place."
 }
 
-# ここから実行順です（[2]〜[7]の関数を、この順で呼び出します）。
+# Exécution du programme à partir d'ici (appeler les fonctions [2] à [7] dans cet ordre).
 MODEL_DIR_PARENT=$(dirname "$MODEL_DIR")
 check_docker
 check_disk_space
@@ -141,4 +141,4 @@ pull_image
 fetch_model
 place_llm_chat_dockerfile
 
-printf '%s\n' '準備ができました'
+printf '%s\n' 'La préparation est terminée'

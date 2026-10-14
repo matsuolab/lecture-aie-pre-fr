@@ -1,76 +1,76 @@
-# 次回の準備課題
+# Travail de préparation pour la prochaine séance
 
-今回の課題は、前回用意した`pre_day2/template.md`と`pre_day2/generate.sh`を使います。課題の所要時間の目安は合計30分です。提出はありません。課題のあとに、次回使う大きなファイルを先に取り込む「次回の準備」もあります。こちらは課題とは別の作業で、30分には含みません。
+Cet exercice utilise les fichiers `pre_day2/template.md` et `pre_day2/generate.sh` préparés la dernière fois. Comptez environ 30 minutes au total pour l'exercice. Aucun travail n'est à rendre. Après l'exercice, une section « Préparation de la prochaine séance » vous propose aussi de télécharger à l'avance les fichiers volumineux qui seront utilisés à cette occasion. Il s'agit d'une tâche distincte, qui n'est pas comprise dans les 30 minutes.
 
-## 課題
+## Exercice
 
-レポートに「実行したマシン」の欄を足してください。そのうえで、手元のCodespaceとGitHub Actionsの両方でレポートを生成し、記録された二つの値を見比べます。Codespaceで生成した値は、GitHub側の結果を取り込むと上書きされるので、先にメモへ控えておいてください。
+Ajoutez au rapport un champ « Machine ayant exécuté le script ». Générez ensuite le rapport dans votre Codespace et dans GitHub Actions, puis comparez les deux valeurs enregistrées. La valeur générée dans le Codespace sera écrasée lorsque vous récupérerez le résultat depuis GitHub ; notez-la donc au préalable.
 
-使う操作は、今日の実習と同じです。次の条件を守って進めてください。
+Les manipulations sont les mêmes que pendant les travaux pratiques d'aujourd'hui. Respectez les conditions suivantes.
 
-- 今日と同じ`master`から、課題用のbranchを作って作業する。
-- 変更はPull Requestで`master`へ取り込む。
-- commitするのは`pre_day2`の`template.md`、`generate.sh`、`report.md`の三つだけ。
-- 取り込んだあと、Codespaceの`master`にもGitHub側の結果を取り込んでおく。
+- Travaillez sur une branche créée pour cet exercice à partir de `master`, comme aujourd'hui.
+- Intégrez les modifications dans `master` au moyen d'une Pull Request.
+- Incluez dans le commit uniquement les trois fichiers `template.md`, `generate.sh` et `report.md` de `pre_day2`.
+- Après l'intégration, récupérez également le résultat de GitHub dans la branche `master` de votre Codespace.
 
-## 足す行
+## Lignes à ajouter
 
-足す行は次の枠のとおりです。枠の中身を、指定の位置へそのまま写してください。
+Les lignes à ajouter figurent dans les blocs ci-dessous. Recopiez leur contenu tel quel aux emplacements indiqués.
 
 ### template.md
 
-「確認日時」の行の次へ足します。
+Ajoutez cette ligne juste après celle qui porte le libellé « Date et heure de vérification (UTC) ».
 
 ```
-実行したマシン: {{MACHINE_NAME}}
+Machine ayant exécuté le script : {{MACHINE_NAME}}
 ```
 
 ### generate.sh
 
-`checked_at=`の行の次へ足します。`#`で始まる行は、何をしているかの説明書きです。
+Ajoutez ces lignes juste après la ligne `checked_at=`. Les lignes commençant par `#` expliquent ce que fait le code.
 
 ```
-    # 実行しているマシンの識別名を、machine_name に入れます。
-    # /proc/sys/kernel/hostname は、マシンが自分の識別名を書いているファイルです。
+    # Placer dans machine_name le nom qui identifie la machine exécutant le script.
+    # /proc/sys/kernel/hostname est le fichier où la machine indique son propre nom d'identification.
     machine_name=$(cat /proc/sys/kernel/hostname)
 ```
 
-`{{HTTP_STATUS}}`を置き換える`sed`の行の前へ、次の一行を足します。`template.md`に足した印`{{MACHINE_NAME}}`を、上で取り出した識別名に置き換える指定です。
+Ajoutez la ligne suivante avant la ligne `sed` qui remplace `{{HTTP_STATUS}}`. Elle demande de remplacer le repère `{{MACHINE_NAME}}`, ajouté à `template.md`, par le nom d'identification obtenu ci-dessus.
 
 ```
         -e "s|{{MACHINE_NAME}}|$machine_name|g" \
 ```
 
-この行は、前後の`sed`の行と合わせて一つの命令です。行末の`\`（バックスラッシュ）は「命令が次の行へ続く」という印なので、必ず含めてください。また、この行の前後には説明書きの行を入れないでください。命令の途中に入れると、そこで命令が切れてしまいます。
+Avec les lignes `sed` qui l'entourent, cette ligne forme une seule commande. Le caractère `\` (barre oblique inverse) en fin de ligne indique que la commande continue à la ligne suivante : veillez à le conserver. N'ajoutez pas non plus de ligne de commentaire juste avant ou juste après cette ligne. Un commentaire placé au milieu de la commande l'interromprait à cet endroit.
 
-## 注意点
+## Points de vigilance
 
-- `generate.sh`に足した`sed`の行の、行末の`\`を消さないでください。消えると、`./generate.sh`が何も表示しないまま止まります。そうなったら`Ctrl`キーを押しながら`C`キーを押して中断し、`\`を足して保存し直してから、もう一度実行します。
-- Actionsで赤くなったstepがあれば、最初に赤くなったstepのエラーを読みます。原因の多くは、足した行の写し間違いか、位置のずれです。Pull Requestはもう取り込み済みなので、同じPull Requestでは直せません。手元の`master`を最新にしてから新しいbranchを作り、そこで直して、同じ流れでもう一度取り込みます。
-- Codespaceの値とGitHub Actionsの値は、違っていて正解です。同じ場合は、控え違いがないか確かめてください。
+- Ne supprimez pas le `\` à la fin de la ligne `sed` ajoutée à `generate.sh`. Sans lui, `./generate.sh` reste bloqué sans rien afficher. Si cela se produit, interrompez le script en maintenant la touche `Ctrl` enfoncée et en appuyant sur `C`, remettez le `\`, enregistrez, puis relancez le script.
+- Si une étape apparaît en rouge dans Actions, lisez l'erreur de la première étape devenue rouge. Les causes les plus fréquentes sont une erreur de copie dans une ligne ajoutée ou un mauvais emplacement. La Pull Request ayant déjà été intégrée, vous ne pouvez pas la réutiliser pour corriger l'erreur. Mettez à jour votre branche locale `master`, créez une nouvelle branche, corrigez-y le problème, puis intégrez la correction en suivant la même procédure.
+- Il est normal que les valeurs du Codespace et de GitHub Actions soient différentes. Si elles sont identiques, vérifiez que vous les avez bien recopiées.
 
-## 自己採点
+## Autoévaluation
 
-次の項目をすべて満たしていれば、課題は完成です。確かめ方も書いてあるので、一つずつ確かめてください。
+L'exercice est terminé lorsque tous les critères suivants sont remplis. La manière de les vérifier est précisée : contrôlez-les un par un.
 
-- [ ] 課題用のbranchからのPull Requestで取り込んでいて、変更したファイルは`pre_day2`の三つだけ。（そのPull Requestの`Files changed`で確かめる）
-- [ ] GitHub Actionsでの生成が成功している。（Repositoryの`Actions`で、取り込み後に始まった`Update report`の実行が緑色になっている。取り込んだ直後は実行中の表示なので、終わるまで待つ）
-- [ ] Codespaceの`master`にGitHub側の結果を取り込んである。（`git status`を実行すると、`master`にいて、記録されていない変更がない）
-- [ ] `report.md`に「実行したマシン: 」の行があり、後ろに値が入っている。（`cat pre_day2/report.md`で表示し、行があること、`{{MACHINE_NAME}}`のままではないことを見る）
-- [ ] その値が、Codespaceで生成したときに控えた値と違っている。（取り込んだ`report.md`の値はGitHub Actions側で生成されたもの）
+- [ ] Les modifications ont été intégrées au moyen d'une Pull Request depuis la branche de l'exercice, et seuls les trois fichiers de `pre_day2` ont été modifiés. (Vérifiez dans l'onglet `Files changed` de cette Pull Request.)
+- [ ] La génération dans GitHub Actions a réussi. (Dans l'onglet `Actions` du dépôt, l'exécution de `Update report` démarrée après l'intégration apparaît en vert. Juste après l'intégration, elle est encore en cours : attendez qu'elle se termine.)
+- [ ] Le résultat de GitHub a été récupéré dans la branche `master` du Codespace. (En exécutant `git status`, vous constatez que vous êtes sur `master` et qu'aucune modification n'est en attente de commit.)
+- [ ] `report.md` contient une ligne « Machine ayant exécuté le script : » suivie d'une valeur. (Affichez-le avec `cat pre_day2/report.md` et vérifiez que la ligne existe et que `{{MACHINE_NAME}}` a bien été remplacé.)
+- [ ] Cette valeur diffère de celle que vous avez notée lors de la génération dans le Codespace. (La valeur de `report.md` récupéré provient de la génération dans GitHub Actions.)
 
-## 次回の準備
+## Préparation de la prochaine séance
 
-ここからは課題ではなく、次回のための作業です。次回使う大きなファイルを、先に取り込んでおきます。
+À partir d'ici, il s'agit de préparer la prochaine séance, et non plus de réaliser l'exercice. Téléchargez à l'avance les fichiers volumineux qui seront utilisés lors de cette séance.
 
-Repositoryには、準備用のプログラム`pre_day3/prepare.sh`が最初から入っています。Codespaceのターミナルで、Repositoryの先頭から次を実行します。
+Le programme de préparation `pre_day3/prepare.sh` est déjà présent dans le dépôt. Dans le terminal du Codespace, exécutez la commande suivante depuis la racine du dépôt.
 
 ```sh
 ./pre_day3/prepare.sh
 ```
 
-数分かかることがあります。`準備ができました`と表示されれば完了です。エラーで止まった場合は、表示に書かれている次の行動（しばらく待つ、容量を空ける、もう一度実行するなど）に従ってください。
+Cela peut prendre quelques minutes. La préparation est terminée lorsque le message `La préparation est terminée` s'affiche. Si le programme s'arrête sur une erreur, suivez les instructions affichées (patienter, libérer de l'espace, relancer le programme, etc.).
 
-時間が取れず実行できなかった場合も、次回の最初に同じコマンドを実行すれば続けられます。ただし取り込みには最大で10分ほどかかるので、次回はその分の時間を余分に見ておいてください。
+Si vous n'avez pas eu le temps de le lancer, vous pourrez poursuivre en exécutant la même commande au début de la prochaine séance. Le téléchargement pouvant prendre jusqu'à 10 minutes, prévoyez toutefois ce temps supplémentaire pour la prochaine séance.
 
-次回は、今回記録した「実行したマシン」のしくみを、Dockerの中で動かします。
+Lors de la prochaine séance, vous ferez fonctionner dans Docker le mécanisme utilisé ici pour renseigner « Machine ayant exécuté le script ».

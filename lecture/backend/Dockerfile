@@ -1,27 +1,27 @@
-# --- ビルド用ステージ ---
+# --- Étape de construction ---
 FROM python:3.12-slim AS builder
 
 WORKDIR /app
 
-# 仮想環境を作成
+# Créer un environnement virtuel
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 COPY requirements.txt .
-# && で順番に実行
+# Exécuter les commandes dans l'ordre avec &&
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
 
-# --- 実行用ステージ ---
+# --- Étape d'exécution ---
 FROM python:3.12-slim AS runner
 WORKDIR /app
 
-# ビルドステージから仮想環境ごとコピー
+# Copier l'environnement virtuel complet depuis l'étape de construction
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# アプリケーションコードを配置
+# Mettre en place le code de l'application
 COPY . /app/
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

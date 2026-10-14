@@ -1,10 +1,10 @@
 services:
   backend:
     build: ./backend
-    # ホストにはポートを公開しない。
-    # frontendのnginxが同じDockerネットワーク内で backend:8000 に
-    # リバースプロキシするため、外部からの直接アクセスは不要。
-    # (公開したままだとCodespaceのポート一覧に8000番も出て紛らわしい)
+    # Ne pas publier le port sur l'hôte.
+    # Le nginx du frontend fait office de proxy inverse vers backend:8000
+    # sur le même réseau Docker ; un accès direct depuis l'extérieur est donc inutile.
+    # (Le publier ferait aussi apparaître le port 8000 dans la liste des ports du Codespace, ce qui prêterait à confusion)
     expose:
       - "8000"
 
